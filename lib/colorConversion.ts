@@ -82,7 +82,7 @@ export function detectColorFormat(colorString: string): ColorFormat | null {
       return null;
     }
     
-    // Check for hex format
+    // Check for hex format (including hex with alpha)
     if (colorValue.startsWith('#') || /^[0-9A-Fa-f]{3,8}$/.test(colorValue)) {
       return 'hex';
     }
@@ -214,6 +214,34 @@ function formatOKLCH(oklch: OKLCH, simplified = false, useCommas = false): strin
   return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)})`;
 }
 
+// Function to convert alpha value (0-1) to hex string (00-FF)
+function alphaToHex(alpha: number): string {
+  // Ensure alpha is between 0 and 1
+  const clampedAlpha = Math.max(0, Math.min(1, alpha));
+  // Convert to 0-255 range and then to hex
+  const alphaInt = Math.round(clampedAlpha * 255);
+  const alphaHex = alphaInt.toString(16).padStart(2, '0').toUpperCase();
+  return alphaHex;
+}
+
+// Function to extract alpha from hex color (if it's in 8-digit format)
+function extractAlphaFromHex(hex: string): number | undefined {
+  // If it's an 8-digit hex (like #RRGGBBAA)
+  if (hex.startsWith('#') && hex.length === 9) {
+    const alphaHex = hex.substring(7, 9);
+    const alpha = parseInt(alphaHex, 16) / 255;
+    return alpha;
+  }
+  // If it's a 4-digit hex (like #RGBA)
+  else if (hex.startsWith('#') && hex.length === 5) {
+    const alphaHex = hex.substring(4, 5);
+    // For 4-digit hex, we repeat the digit (e.g., '8' becomes '88')
+    const alpha = parseInt(alphaHex + alphaHex, 16) / 255;
+    return alpha;
+  }
+  return undefined;
+}
+
 // Function to handle alpha percentage format
 function handleAlphaPercentage(colorString: string): string {
   // Match both formats: "/ 70%" and "/70%"
@@ -229,6 +257,11 @@ function handleAlphaPercentage(colorString: string): string {
 
 // Function to extract alpha value from a color string if present
 function extractAlphaFromString(colorString: string): number | undefined {
+  // Check for hex with alpha first
+  if (colorString.startsWith('#')) {
+    return extractAlphaFromHex(colorString);
+  }
+  
   // Check for alpha in format "/ 70%" or "/70%"
   const alphaPercentMatch = colorString.match(/\/\s*(\d+(?:\.\d+)?)%\)$/i);
   if (alphaPercentMatch) {
@@ -280,6 +313,22 @@ function validateColorComponentCount(value: string, format: ColorFormat): boolea
     // If anything goes wrong during validation, fail safely
     return false;
   }
+}
+
+// Convert RGB color to HEX with support for alpha
+function rgbToHexWithAlpha(rgb: RGB): string {
+  const { r, g, b, a } = rgb;
+  const redHex = Math.round(r).toString(16).padStart(2, '0');
+  const greenHex = Math.round(g).toString(16).padStart(2, '0');
+  const blueHex = Math.round(b).toString(16).padStart(2, '0');
+  
+  // If alpha is defined and not 1, add it to the hex color
+  if (a !== undefined && a !== 1 && a > 0.001) {
+    const alphaHex = alphaToHex(a);
+    return `#${redHex}${greenHex}${blueHex}${alphaHex}`;
+  }
+  
+  return `#${redHex}${greenHex}${blueHex}`;
 }
 
 // Generic color conversion function
@@ -379,35 +428,114 @@ export function convertColor(
 
     // Conversion matrix for all format combinations
     if (actualSourceFormat === 'hex') {
+      // First extract alpha from hex if it exists (8-digit or 4-digit hex)
+      if (!alphaValue || alphaValue === 1) {
+        alphaValue = extractAlphaFromHex(processedColorValue);
+      }
+      
       if (targetFormat === 'hsl') result = hex2hsl(processedColorValue);
       else if (targetFormat === 'oklab') result = hex2oklab(processedColorValue);
       else if (targetFormat === 'oklch') result = hex2oklch(processedColorValue);
       else if (targetFormat === 'rgb') result = hex2rgb(processedColorValue);
       else result = processedColorValue; // hex to hex
+      
+      // For hex format, also transfer the alpha value if it exists in the original hex
+      if (result && typeof result !== 'string' && alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001) {
+        if (targetFormat === 'hsl') {
+          (result as HSL).a = alphaValue;
+        } else if (targetFormat === 'rgb') {
+          (result as RGB).a = alphaValue;
+        } else if (targetFormat === 'oklab') {
+          (result as OKLAB).alpha = alphaValue;
+        } else if (targetFormat === 'oklch') {
+          (result as OKLCH).alpha = alphaValue;
+        }
+      }
     } 
     else if (actualSourceFormat === 'hsl') {
-      if (targetFormat === 'hex') result = hsl2hex(parsedColor as HSL);
+      if (targetFormat === 'hex') {
+        // When converting to hex, use the custom function that supports alpha
+        const hslColor = parsedColor as HSL;
+        // Ensure alpha is correctly transferred before RGB conversion
+        if (alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001) {
+          hslColor.a = alphaValue;
+        }
+        const rgbResult = hsl2rgb(hslColor);
+        result = rgbToHexWithAlpha(rgbResult);
+      }
       else if (targetFormat === 'oklab') result = hsl2oklab(parsedColor as HSL);
       else if (targetFormat === 'oklch') result = hsl2oklch(parsedColor as HSL);
       else if (targetFormat === 'rgb') result = hsl2rgb(parsedColor as HSL);
       else result = parsedColor; // hsl to hsl
     }
     else if (actualSourceFormat === 'oklab') {
-      if (targetFormat === 'hex') result = oklab2hex(parsedColor as OKLAB);
+      if (targetFormat === 'hex') {
+        // When converting to hex, use the custom function that supports alpha
+        const oklabColor = parsedColor as OKLAB;
+        
+        // Ensure alpha is correctly transferred before RGB conversion
+        if (alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001) {
+          oklabColor.alpha = alphaValue;
+        }
+        
+        // Debug information if we're in development
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('OKLAB with alpha conversion:', oklabColor);
+        }
+        
+        const rgbResult = oklab2rgb(oklabColor);
+        
+        // Make sure alpha gets transferred to the RGB result
+        if (oklabColor.alpha !== undefined && oklabColor.alpha !== 1 && oklabColor.alpha > 0.001) {
+          (rgbResult as RGB).a = oklabColor.alpha;
+        }
+        
+        result = rgbToHexWithAlpha(rgbResult);
+      }
       else if (targetFormat === 'hsl') result = oklab2hsl(parsedColor as OKLAB);
       else if (targetFormat === 'oklch') result = oklab2oklch(parsedColor as OKLAB);
       else if (targetFormat === 'rgb') result = oklab2rgb(parsedColor as OKLAB);
       else result = parsedColor; // oklab to oklab
     }
     else if (actualSourceFormat === 'oklch') {
-      if (targetFormat === 'hex') result = oklch2hex(parsedColor as OKLCH);
+      if (targetFormat === 'hex') {
+        // When converting to hex, use the custom function that supports alpha
+        const oklchColor = parsedColor as OKLCH;
+        
+        // Ensure alpha is correctly transferred before RGB conversion
+        if (alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001) {
+          oklchColor.alpha = alphaValue;
+        }
+        
+        // Debug information if we're in development
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('OKLCH with alpha conversion:', oklchColor);
+        }
+        
+        const rgbResult = oklch2rgb(oklchColor);
+        
+        // Make sure alpha gets transferred to the RGB result
+        if (oklchColor.alpha !== undefined && oklchColor.alpha !== 1 && oklchColor.alpha > 0.001) {
+          (rgbResult as RGB).a = oklchColor.alpha;
+        }
+        
+        result = rgbToHexWithAlpha(rgbResult);
+      }
       else if (targetFormat === 'hsl') result = oklch2hsl(parsedColor as OKLCH);
       else if (targetFormat === 'oklab') result = oklch2oklab(parsedColor as OKLCH);
       else if (targetFormat === 'rgb') result = oklch2rgb(parsedColor as OKLCH);
       else result = parsedColor; // oklch to oklch
     }
     else if (actualSourceFormat === 'rgb') {
-      if (targetFormat === 'hex') result = rgb2hex(parsedColor as RGB);
+      if (targetFormat === 'hex') {
+        // When converting to hex, use the custom function that supports alpha
+        const rgbWithAlpha = parsedColor as RGB;
+        // Ensure alpha is correctly transferred
+        if (alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001) {
+          rgbWithAlpha.a = alphaValue;
+        }
+        result = rgbToHexWithAlpha(rgbWithAlpha);
+      }
       else if (targetFormat === 'hsl') result = rgb2hsl(parsedColor as RGB);
       else if (targetFormat === 'oklab') result = rgb2oklab(parsedColor as RGB);
       else if (targetFormat === 'oklch') result = rgb2oklch(parsedColor as RGB);
@@ -415,14 +543,18 @@ export function convertColor(
     }
 
     // Make sure alpha value is properly transferred to the result if it exists
-    if (alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001 && result && typeof result !== 'string') {
-      if (targetFormat === 'hsl' || targetFormat === 'rgb') {
-        (result as any).a = alphaValue;
-      } else if (targetFormat === 'oklab' || targetFormat === 'oklch') {
-        (result as any).alpha = alphaValue;
+    if (result && typeof result !== 'string' && alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001) {
+      if (targetFormat === 'hsl') {
+        (result as HSL).a = alphaValue;
+      } else if (targetFormat === 'rgb') {
+        (result as RGB).a = alphaValue;
+      } else if (targetFormat === 'oklab') {
+        (result as OKLAB).alpha = alphaValue;
+      } else if (targetFormat === 'oklch') {
+        (result as OKLCH).alpha = alphaValue;
       }
     }
-    
+
     // Format the result
     let formattedResult: string;
     if (typeof result === 'string') {
