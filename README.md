@@ -34,80 +34,8 @@ ColorSrc is a modern web application for converting between various color format
 Whether you're migrating from traditional RGB/HSL colors to modern OKLCH format, or need to convert colors for different design systems, ColorSrc has you covered with accurate conversions and a sleek interface.
 
 <p align="center">
-  <img src="screenshots/colorsrc-overview.png" alt="ColorSrc Overview" width="600" />
+  <img src="asset/colorsrc-overview.png" alt="ColorSrc Overview" width="600" />
 </p>
-
-## Features
-
-- **Multi-format Support**: Convert between various color formats:
-  - HEX: Standard hexadecimal notation (`#RRGGBB`)
-  - HSL: Hue, Saturation, Lightness model
-  - OKLAB: Perceptually uniform LAB color space
-  - OKLCH: Perceptually uniform cylindrical color space
-  - RGB: Red, Green, Blue model
-
-- **Intelligent Auto-detection**: Smart detection of input color formats
-  - Automatically identifies format when using "Auto Detect" mode
-  - Supports raw values, function notation, and CSS variables
-
-- **Batch Processing**: Convert multiple colors at once
-  - Process entire color palettes in a single operation
-  - Multi-line support maintains formatting and spacing
-
-- **Modern UI Features**:
-  - Smooth animations and transitions powered by Framer Motion
-  - Dark/Light mode support
-  - Fully responsive design works on mobile, tablet, and desktop
-  - Copy-to-clipboard functionality
-  - Format-specific syntax highlighting
-
-- **Developer-Focused**:
-  - Support for CSS variables (e.g., `--background: oklch(1 0 0);`)
-  - Preserves original format of CSS variables
-  - Full support for alpha channel values
-  - Simplified output mode that removes format prefixes
-
-<p align="center">
-  <img src="screenshots/colorsrc-features.png" alt="ColorSrc Features" width="700" />
-</p>
-
-## Installation
-
-### Prerequisites
-
-- Node.js 18.x or higher
-- npm, yarn, or pnpm package manager
-
-### Setup
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/yorukot/colorsrc.git
-cd colorsrc
-```
-
-2. Install dependencies:
-
-```bash
-pnpm install
-# or
-npm install
-# or
-yarn install
-```
-
-3. Start the development server:
-
-```bash
-pnpm dev
-# or
-npm run dev
-# or
-yarn dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
 ## Usage
 
@@ -239,17 +167,43 @@ ColorSrc can be installed as a Progressive Web App for offline use:
   <img src="screenshots/colorsrc-pwa.png" alt="Progressive Web App" width="300" />
 </p>
 
-## Contributing
+## Installation
 
-Contributions are welcome! Here's how you can help:
+### Prerequisites
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add some amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+- Node.js 18.x or higher
+- npm, yarn, or pnpm package manager
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+### Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yorukot/colorsrc.git
+cd colorsrc
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+# or
+npm install
+# or
+yarn install
+```
+
+3. Start the development server:
+
+```bash
+pnpm dev
+# or
+npm run dev
+# or
+yarn dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
 ## License
 
@@ -268,3 +222,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   Built with ❤️ by <a href="https://github.com/yorukot">Yorukot</a>
 </p>
+
+@layer base {
+    :root {
+      --background: 142 40% 98%;
+      --foreground: 142 67% 0%;
+      --radius: 0.5rem;
+    }
+  
+    .dark {
+      --background: 142 33% 3%;
+      --foreground: 142 36% 97%;
+      --muted: 112 25% 15%;
+      --destructive-foreground: oklch(0.93 0.03 25/70);
+    }
+  }
+  
+  

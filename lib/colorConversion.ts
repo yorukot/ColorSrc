@@ -197,6 +197,12 @@ function handleAlphaPercentage(colorString: string): string {
 // Function to validate color has the expected number of components
 function validateColorComponentCount(value: string, format: ColorFormat): boolean {
   try {
+    // Special case for hex format - hex doesn't need component counting
+    if (format === 'hex') {
+      // Hex validation is simpler - just check if it's a valid hex pattern
+      return value.startsWith('#') || /^[0-9A-Fa-f]{3,8}$/.test(value);
+    }
+    
     // Remove the format prefix and any parentheses
     const cleanValue = value
       .replace(/^(hsl|rgb|oklab|oklch)\s*\(/, '')
@@ -257,12 +263,12 @@ export function convertColor(
     if (sourceFormat === 'auto') {
       actualSourceFormat = detectColorFormat(processedColorValue) || 'hex';
     }
-    
+
     // Validate that the color has the expected number of components for its format
     if (actualSourceFormat !== 'auto' && !validateColorComponentCount(processedColorValue, actualSourceFormat)) {
       return null; // Skip conversion if component count doesn't match expectations
     }
-    
+
     // Parse the color value based on source format
     let parsedColor;
     try {
@@ -287,7 +293,7 @@ export function convertColor(
     
     // Convert to target format
     let result: string | HSL | RGB | OKLAB | OKLCH | null = null;
-    
+
     // Conversion matrix for all format combinations
     if (actualSourceFormat === 'hex') {
       if (targetFormat === 'hsl') result = hex2hsl(processedColorValue);
@@ -334,6 +340,7 @@ export function convertColor(
       else if (targetFormat === 'rgb') formattedResult = formatRGB(result as RGB, simplified);
       else if (targetFormat === 'oklab') formattedResult = formatOKLAB(result as OKLAB, simplified);
       else if (targetFormat === 'oklch') formattedResult = formatOKLCH(result as OKLCH, simplified);
+      else if (targetFormat === 'hex' && typeof result === 'string') formattedResult = result;
       else formattedResult = String(result);
     } else {
       return null;
