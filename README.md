@@ -1,47 +1,34 @@
 # ColorSrc
 
-<p align="center">
-  <img src="screenshots/colorsrc-logo.png" alt="ColorSrc Logo" width="200" />
-</p>
-
 A powerful tool for converting between multiple color formats. Built with Next.js, Shadcn UI, and Framer Motion.
 
-[![Demo](https://img.shields.io/badge/Live%20Demo-colorsrc.vercel.app-blue?style=for-the-badge)](https://colorsrc.vercel.app)
+[![Demo](https://img.shields.io/badge/Live%20Demo-colorsrc.yorukot.me-blue?style=for-the-badge)](https://colorsrc.yorukot.me)
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-green?style=for-the-badge)](https://github.com/yorukot/colorsrc)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <img src="screenshots/colorsrc-demo.png" alt="ColorSrc Demo" width="800" />
+  <img src="asset/colorsrc-demo.gif" alt="ColorSrc demo" width="650" />
 </p>
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Color Format Support](#color-format-support)
-- [Examples](#examples)
-- [Advanced Features](#advanced-features)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
 
 ## Overview
 
-ColorSrc is a modern web application for converting between various color formats used in web development and design. It combines powerful color conversion algorithms with an intuitive, user-friendly interface to streamline workflow for developers and designers.
-
-Whether you're migrating from traditional RGB/HSL colors to modern OKLCH format, or need to convert colors for different design systems, ColorSrc has you covered with accurate conversions and a sleek interface.
+ColorSrc is a modern web application for converting between various color formats used in web development and design. It provides accurate conversions with an intuitive interface to streamline workflow for developers and designers.
 
 <p align="center">
   <img src="asset/colorsrc-overview.png" alt="ColorSrc Overview" width="600" />
 </p>
 
-## Usage
+## Features
 
-<p align="center">
-  <img src="screenshots/colorsrc-usage.png" alt="ColorSrc Usage" width="650" />
-</p>
+- **Multiple Format Support**: HEX, RGB, HSL, OKLAB, OKLCH
+- **Batch Conversion**: Process multiple colors at once
+- **CSS Variables**: Preserve variable names during conversion  
+- **Alpha Support**: Full transparency channel handling
+- **Auto-Detection**: Automatic identification of input color formats
+- **Simplified Output**: Option to display just values without format names
+- **Progressive Web App**: Available for offline use
+
+## Usage
 
 1. **Select Formats**:
    - Choose your source format (or use Auto Detect)
@@ -108,134 +95,65 @@ Classic Red, Green, Blue format widely used in web and design.
 ## Examples
 
 ### Converting CSS Variables
-ColorSrc intelligently preserves CSS variables while converting their values:
 
 ```css
 /* Input (HSL) */
 --primary: 220 100% 50%;
 --secondary: 280 75% 60%;
---text: 0 0% 10%;
 
 /* Output (OKLCH) */
 --primary: oklch(0.57 0.23 260);
 --secondary: oklch(0.65 0.20 305);
---text: oklch(0.20 0.00 0);
 ```
 
-### Batch Converting Color Palettes
-Process entire color schemes at once:
-
-<p align="center">
-  <img src="screenshots/colorsrc-batch.png" alt="Batch Color Conversion" width="700" />
-</p>
-
-### Converting with Alpha Values
-ColorSrc fully supports alpha (transparency) channel:
+### Color Palette Conversion with Alpha
 
 ```css
 /* Input */
 --overlay: rgba(0, 0, 0, 0.5);
 --glass: hsla(200, 100%, 50%, 0.2);
---border: oklch(1 0 0 / 10%);
 
 /* Output */
 --overlay: oklch(0.00 0.00 0 / 50%);
 --glass: oklch(0.63 0.20 233 / 20%);
---border: rgb(255 255 255 / 10%);
 ```
-
-## Advanced Features
-
-### Simplified Output Mode
-Toggle the simplified output checkbox to get values without format names - useful for variable assignments or when you only need the values:
-
-<p align="center">
-  <img src="screenshots/colorsrc-simplified.png" alt="Simplified Output Mode" width="650" />
-</p>
-
-### Auto-Detection
-The Auto Detect feature can identify most color formats without manual selection:
-
-<p align="center">
-  <img src="screenshots/colorsrc-autodetect.png" alt="Auto-Detection Feature" width="700" />
-</p>
-
-### Progressive Web App
-ColorSrc can be installed as a Progressive Web App for offline use:
-
-<p align="center">
-  <img src="screenshots/colorsrc-pwa.png" alt="Progressive Web App" width="300" />
-</p>
 
 ## Installation
 
 ### Prerequisites
-
 - Node.js 18.x or higher
-- npm, yarn, or pnpm package manager
+- npm, yarn, or pnpm
 
 ### Setup
 
-1. Clone the repository:
-
 ```bash
+# Clone repository
 git clone https://github.com/yorukot/colorsrc.git
 cd colorsrc
+
+# Install dependencies
+pnpm install  # or npm/yarn
+
+# Start development server
+pnpm dev      # or npm run dev/yarn dev
+
+# Open http://localhost:3000
 ```
-
-2. Install dependencies:
-
-```bash
-pnpm install
-# or
-npm install
-# or
-yarn install
-```
-
-3. Start the development server:
-
-```bash
-pnpm dev
-# or
-npm run dev
-# or
-yarn dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 
-- Color conversion algorithms provided by [Colorizr](https://github.com/gilbarbara/colorizr)
-- UI components from [Shadcn UI](https://ui.shadcn.com/)
-- Animations powered by [Framer Motion](https://www.framer.com/motion/)
-- Icons from [Lucide Icons](https://lucide.dev/)
-- Created with [Next.js](https://nextjs.org/)
+- [Colorizr](https://github.com/gilbarbara/colorizr) - Color conversion algorithms
+- [Shadcn UI](https://ui.shadcn.com/) - UI components
+- [Framer Motion](https://www.framer.com/motion/) - Animations
+- [Lucide Icons](https://lucide.dev/) - Icons
+- [Next.js](https://nextjs.org/) - Framework
 
 ---
 
 <p align="center">
   Built with ❤️ by <a href="https://github.com/yorukot">Yorukot</a>
 </p>
-
-@layer base {
-    :root {
-      --background: 142 40% 98%;
-      --foreground: 142 67% 0%;
-      --radius: 0.5rem;
-    }
-  
-    .dark {
-      --background: 142 33% 3%;
-      --foreground: 142 36% 97%;
-      --muted: 112 25% 15%;
-      --destructive-foreground: oklch(0.93 0.03 25/70);
-    }
-  }
-  
-  
