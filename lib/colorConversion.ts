@@ -54,16 +54,28 @@ export function detectColorFormat(colorString: string): ColorFormat | null {
     // Check if it's a valid color at all
     if (!isValidColor(colorValue)) {
       // Specially handle alpha percentage format (like oklch(1 0 0 / 10%))
-      const alphaPercentMatch = colorValue.match(/^(oklch|oklab|rgb|hsl)\((.+?)\s*\/\s*(\d+)%\)$/i);
+      const alphaPercentMatch = colorValue.match(/^(oklch|oklab|rgb|hsl)\((.+?)\s*\/\s*(\d+(?:\.\d+)?)%\)$/i);
       if (alphaPercentMatch) {
         // Convert percentage to decimal for library compatibility
         const [, format, values, percent] = alphaPercentMatch;
-        const alphaDecimal = parseInt(percent) / 100;
+        const alphaDecimal = parseFloat(percent) / 100;
         const reformattedColor = `${format}(${values} ${alphaDecimal})`;
         
         // Check if reformatted color is valid
         if (isValidColor(reformattedColor)) {
           return format.toLowerCase() as ColorFormat;
+        }
+      }
+      
+      // Handle rgba and hsla formats with decimal alpha
+      const alphaDecimalMatch = colorValue.match(/^(rgba?|hsla?)\((.+?),\s*(\d*\.\d+|\d+)\)$/i);
+      if (alphaDecimalMatch) {
+        const [, format, values, alpha] = alphaDecimalMatch;
+        const baseFormat = format.toLowerCase().startsWith('rgb') ? 'rgb' : 'hsl';
+        const reformattedColor = `${baseFormat}(${values.replace(/,/g, ' ')}, ${alpha})`;
+        
+        if (isValidColor(reformattedColor)) {
+          return baseFormat as ColorFormat;
         }
       }
       
@@ -141,12 +153,15 @@ export function detectColorFormat(colorString: string): ColorFormat | null {
 function formatHSL(hsl: HSL, simplified = false, useCommas = false): string {
   const separator = useCommas ? ', ' : ' ';
   
+  // Only include alpha if it exists and is not 0 or extremely close to 0
+  const includeAlpha = hsl.a !== undefined && hsl.a !== 1 && hsl.a > 0.001;
+  
   if (simplified) {
-    return `${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}%${hsl.a !== undefined && hsl.a !== 1 ? ` / ${(hsl.a * 100).toFixed(0)}%` : ''}`;
+    return `${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}%${includeAlpha ? ` / ${(hsl.a! * 100).toFixed(0)}%` : ''}`;
   }
   
-  if (hsl.a !== undefined && hsl.a !== 1) {
-    return `hsl(${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}% / ${(hsl.a * 100).toFixed(0)}%)`;
+  if (includeAlpha) {
+    return `hsl(${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}% / ${(hsl.a! * 100).toFixed(0)}%)`;
   }
   return `hsl(${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}%)`;
 }
@@ -154,12 +169,15 @@ function formatHSL(hsl: HSL, simplified = false, useCommas = false): string {
 function formatRGB(rgb: RGB, simplified = false, useCommas = false): string {
   const separator = useCommas ? ', ' : ' ';
   
+  // Only include alpha if it exists and is not 0 or extremely close to 0
+  const includeAlpha = rgb.a !== undefined && rgb.a !== 1 && rgb.a > 0.001;
+  
   if (simplified) {
-    return `${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)}${rgb.a !== undefined && rgb.a !== 1 ? ` / ${(rgb.a * 100).toFixed(0)}%` : ''}`;
+    return `${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)}${includeAlpha ? ` / ${(rgb.a! * 100).toFixed(0)}%` : ''}`;
   }
   
-  if (rgb.a !== undefined && rgb.a !== 1) {
-    return `rgb(${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)} / ${(rgb.a * 100).toFixed(0)}%)`;
+  if (includeAlpha) {
+    return `rgb(${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)} / ${(rgb.a! * 100).toFixed(0)}%)`;
   }
   return `rgb(${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)})`;
 }
@@ -167,12 +185,15 @@ function formatRGB(rgb: RGB, simplified = false, useCommas = false): string {
 function formatOKLAB(oklab: OKLAB, simplified = false, useCommas = false): string {
   const separator = useCommas ? ', ' : ' ';
   
+  // Only include alpha if it exists and is not 0 or extremely close to 0
+  const includeAlpha = oklab.alpha !== undefined && oklab.alpha !== 1 && oklab.alpha > 0.001;
+  
   if (simplified) {
-    return `${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)}${oklab.alpha !== undefined && oklab.alpha !== 1 ? ` / ${(oklab.alpha * 100).toFixed(0)}%` : ''}`;
+    return `${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)}${includeAlpha ? ` / ${(oklab.alpha! * 100).toFixed(0)}%` : ''}`;
   }
   
-  if (oklab.alpha !== undefined && oklab.alpha !== 1) {
-    return `oklab(${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)} / ${(oklab.alpha * 100).toFixed(0)}%)`;
+  if (includeAlpha) {
+    return `oklab(${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)} / ${(oklab.alpha! * 100).toFixed(0)}%)`;
   }
   return `oklab(${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)})`;
 }
@@ -180,26 +201,47 @@ function formatOKLAB(oklab: OKLAB, simplified = false, useCommas = false): strin
 function formatOKLCH(oklch: OKLCH, simplified = false, useCommas = false): string {
   const separator = useCommas ? ', ' : ' ';
   
+  // Only include alpha if it exists and is not 0 or extremely close to 0
+  const includeAlpha = oklch.alpha !== undefined && oklch.alpha !== 1 && oklch.alpha > 0.001;
+  
   if (simplified) {
-    return `${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)}${oklch.alpha !== undefined && oklch.alpha !== 1 ? ` / ${(oklch.alpha * 100).toFixed(0)}%` : ''}`;
+    return `${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)}${includeAlpha ? ` / ${(oklch.alpha! * 100).toFixed(0)}%` : ''}`;
   }
   
-  if (oklch.alpha !== undefined && oklch.alpha !== 1) {
-    return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)} / ${(oklch.alpha * 100).toFixed(0)}%)`;
+  if (includeAlpha) {
+    return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)} / ${(oklch.alpha! * 100).toFixed(0)}%)`;
   }
   return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)})`;
 }
 
 // Function to handle alpha percentage format
 function handleAlphaPercentage(colorString: string): string {
-  const alphaPercentMatch = colorString.match(/^(oklch|oklab|rgb|hsl)\((.+?)\s*\/\s*(\d+)%\)$/i);
+  // Match both formats: "/ 70%" and "/70%"
+  const alphaPercentMatch = colorString.match(/^(oklch|oklab|rgb|hsl)\((.+?)\s*\/\s*(\d+(?:\.\d+)?)%\)$/i);
   if (alphaPercentMatch) {
     // Convert percentage to decimal for library compatibility
     const [, format, values, percent] = alphaPercentMatch;
-    const alphaDecimal = parseInt(percent) / 100;
+    const alphaDecimal = parseFloat(percent) / 100;
     return `${format}(${values} ${alphaDecimal})`;
   }
   return colorString;
+}
+
+// Function to extract alpha value from a color string if present
+function extractAlphaFromString(colorString: string): number | undefined {
+  // Check for alpha in format "/ 70%" or "/70%"
+  const alphaPercentMatch = colorString.match(/\/\s*(\d+(?:\.\d+)?)%\)$/i);
+  if (alphaPercentMatch) {
+    return parseFloat(alphaPercentMatch[1]) / 100;
+  }
+  
+  // Check for alpha value at the end like "oklch(...) 0.7)" or "rgba(..., 0.7)"
+  const alphaDecimalMatch = colorString.match(/[,\s](\d*\.\d+|\d+)\)$/);
+  if (alphaDecimalMatch && !colorString.includes('%') && parseFloat(alphaDecimalMatch[1]) <= 1) {
+    return parseFloat(alphaDecimalMatch[1]);
+  }
+  
+  return undefined;
 }
 
 // Function to validate color has the expected number of components
@@ -264,8 +306,29 @@ export function convertColor(
       }
     }
 
+    // Check for "raw" HSL format with alpha like "234 71.43% 10.98% / 50%"
+    const rawHslAlphaMatch = !colorValue.startsWith('hsl') && colorValue.match(/^(\d+\.?\d*)\s+(\d+\.?\d*)%\s+(\d+\.?\d*)%\s*\/\s*(\d+(?:\.\d+)?)%$/);
+    if (rawHslAlphaMatch) {
+      const [, h, s, l, a] = rawHslAlphaMatch;
+      colorValue = `hsl(${h} ${s}% ${l}% / ${a}%)`;
+      if (sourceFormat === 'auto') {
+        sourceFormat = 'hsl';
+      }
+    }
+
+    // Try to extract alpha value from original string before processing
+    const stringAlphaValue = extractAlphaFromString(colorValue);
+
     // Handle colors with alpha percentage notation
     const processedColorValue = handleAlphaPercentage(colorValue);
+    
+    // Check if color has alpha component (for preservation during conversion)
+    const hasAlpha = processedColorValue.includes('/') || 
+                    processedColorValue.includes(' / ') ||
+                    processedColorValue.match(/rgba?\(/i) ||
+                    processedColorValue.match(/hsla?\(.+?,.+?,.+?,.+?\)/i) ||
+                    processedColorValue.match(/oklch\(.+?\s+\d+\.?\d*\)$/i) ||
+                    processedColorValue.match(/oklab\(.+?\s+\d+\.?\d*\)$/i);
 
     // If sourceFormat is auto, detect the input format
     let actualSourceFormat = sourceFormat;
@@ -299,6 +362,17 @@ export function convertColor(
     }
     
     if (!parsedColor) return null;
+
+    // Explicitly extract alpha value if it exists in the parsed color
+    let alphaValue: number | undefined;
+    if ((parsedColor as any).a !== undefined) {
+      alphaValue = (parsedColor as any).a;
+    } else if ((parsedColor as any).alpha !== undefined) {
+      alphaValue = (parsedColor as any).alpha;
+    } else if (stringAlphaValue !== undefined) {
+      // Use alpha value extracted from string if not found in parsed color
+      alphaValue = stringAlphaValue;
+    }
     
     // Convert to target format
     let result: string | HSL | RGB | OKLAB | OKLCH | null = null;
@@ -338,6 +412,15 @@ export function convertColor(
       else if (targetFormat === 'oklab') result = rgb2oklab(parsedColor as RGB);
       else if (targetFormat === 'oklch') result = rgb2oklch(parsedColor as RGB);
       else result = parsedColor; // rgb to rgb
+    }
+
+    // Make sure alpha value is properly transferred to the result if it exists
+    if (alphaValue !== undefined && alphaValue !== 1 && alphaValue > 0.001 && result && typeof result !== 'string') {
+      if (targetFormat === 'hsl' || targetFormat === 'rgb') {
+        (result as any).a = alphaValue;
+      } else if (targetFormat === 'oklab' || targetFormat === 'oklch') {
+        (result as any).alpha = alphaValue;
+      }
     }
     
     // Format the result
