@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://colorsrc.vercel.app/",
+    url: "https://colorsrc.yorukot.me/",
     title: "ColorSrc | Color Format Converter",
     description: "ColorSrc - Convert between multiple color formats including HEX, HSL, OKLAB, OKLCH, and RGB. Open source color converter with auto-detection.",
     siteName: "ColorSrc",
@@ -52,8 +52,11 @@ export const metadata: Metadata = {
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
-  metadataBase: new URL("https://colorsrc.vercel.app"),
+  metadataBase: new URL("https://colorsrc.yorukot.me"),
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#1E293B",
 };
 
@@ -69,7 +72,6 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1E293B" />
-        <GoogleAnalytics gaId={gaId} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -84,6 +86,7 @@ export default function RootLayout({
           <ModeToggle />
         </ThemeProvider>
       </body>
+      <GoogleAnalytics gaId={gaId} />
     </html>
   );
 }
