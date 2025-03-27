@@ -62,6 +62,7 @@ export function ColorConverter() {
   const [converting, setConverting] = useState(false);
   const [detectedFormats, setDetectedFormats] = useState<Record<string, ColorFormat>>({});
   const [simplified, setSimplified] = useState(false);
+  const [useCommas, setUseCommas] = useState(false);
 
   // Ensure source and target formats are never the same (except for auto)
   useEffect(() => {
@@ -101,7 +102,7 @@ export function ColorConverter() {
     setConverting(true);
     // Add a small delay to show the animation
     setTimeout(() => {
-      const results = processMultiLineInput(input, sourceFormat, targetFormat, simplified);
+      const results = processMultiLineInput(input, sourceFormat, targetFormat, simplified, useCommas);
       setOutput(results);
       setConverting(false);
     }, 600);
@@ -157,7 +158,17 @@ export function ColorConverter() {
     setSimplified(prev => !prev);
     // If we have output already, regenerate it with the new simplified setting
     if (output.length > 0 && !converting) {
-      const results = processMultiLineInput(input, sourceFormat, targetFormat, !simplified);
+      const results = processMultiLineInput(input, sourceFormat, targetFormat, !simplified, useCommas);
+      setOutput(results);
+    }
+  };
+
+  // Toggle comma-separated format
+  const toggleCommas = () => {
+    setUseCommas(prev => !prev);
+    // If we have output already, regenerate it with the new comma setting
+    if (output.length > 0 && !converting) {
+      const results = processMultiLineInput(input, sourceFormat, targetFormat, simplified, !useCommas);
       setOutput(results);
     }
   };
@@ -270,18 +281,34 @@ export function ColorConverter() {
             </div>
           </motion.div>
 
-          <motion.div custom={1.5} variants={itemVariants} className="flex items-center space-x-2">
-            <Checkbox 
-              id="simplified" 
-              checked={simplified}
-              onCheckedChange={toggleSimplified}
-            />
-            <Label 
-              htmlFor="simplified" 
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-            >
-              Simplified output (without format name)
-            </Label>
+          <motion.div custom={1.5} variants={itemVariants} className="flex flex-col md:flex-row gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="simplified" 
+                checked={simplified}
+                onCheckedChange={toggleSimplified}
+              />
+              <Label 
+                htmlFor="simplified" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Simplified output (without format name)
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="use-commas" 
+                checked={useCommas}
+                onCheckedChange={toggleCommas}
+              />
+              <Label 
+                htmlFor="use-commas" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Use commas as separators
+              </Label>
+            </div>
           </motion.div>
 
           <motion.div custom={2} variants={itemVariants} className="space-y-2">
@@ -359,7 +386,8 @@ export function ColorConverter() {
               >
                 <div className="flex flex-wrap justify-between items-center mb-2 gap-2">
                   <p className="text-sm font-medium">
-                    Output {simplified ? "(Simplified)" : `(${colorFormats.find(f => f.value === targetFormat)?.label})`}:
+                    Output {simplified ? "(Simplified)" : `(${colorFormats.find(f => f.value === targetFormat)?.label})`}
+                    {useCommas && targetFormat !== 'hex' ? " with commas" : ""}:
                   </p>
                   
                   {output.some(item => item.converted) && (

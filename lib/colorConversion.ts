@@ -138,48 +138,56 @@ export function detectColorFormat(colorString: string): ColorFormat | null {
 }
 
 // Format output functions - depending on simplified mode
-function formatHSL(hsl: HSL, simplified = false): string {
+function formatHSL(hsl: HSL, simplified = false, useCommas = false): string {
+  const separator = useCommas ? ', ' : ' ';
+  
   if (simplified) {
-    return `${Math.round(hsl.h)} ${Math.round(hsl.s)}% ${Math.round(hsl.l)}%${hsl.a !== undefined && hsl.a !== 1 ? ` / ${(hsl.a * 100).toFixed(0)}%` : ''}`;
+    return `${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}%${hsl.a !== undefined && hsl.a !== 1 ? ` / ${(hsl.a * 100).toFixed(0)}%` : ''}`;
   }
   
   if (hsl.a !== undefined && hsl.a !== 1) {
-    return `hsl(${Math.round(hsl.h)} ${Math.round(hsl.s)}% ${Math.round(hsl.l)}% / ${(hsl.a * 100).toFixed(0)}%)`;
+    return `hsl(${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}% / ${(hsl.a * 100).toFixed(0)}%)`;
   }
-  return `hsl(${Math.round(hsl.h)} ${Math.round(hsl.s)}% ${Math.round(hsl.l)}%)`;
+  return `hsl(${Math.round(hsl.h)}${separator}${Math.round(hsl.s)}%${separator}${Math.round(hsl.l)}%)`;
 }
 
-function formatRGB(rgb: RGB, simplified = false): string {
+function formatRGB(rgb: RGB, simplified = false, useCommas = false): string {
+  const separator = useCommas ? ', ' : ' ';
+  
   if (simplified) {
-    return `${Math.round(rgb.r)} ${Math.round(rgb.g)} ${Math.round(rgb.b)}${rgb.a !== undefined && rgb.a !== 1 ? ` / ${(rgb.a * 100).toFixed(0)}%` : ''}`;
+    return `${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)}${rgb.a !== undefined && rgb.a !== 1 ? ` / ${(rgb.a * 100).toFixed(0)}%` : ''}`;
   }
   
   if (rgb.a !== undefined && rgb.a !== 1) {
-    return `rgb(${Math.round(rgb.r)} ${Math.round(rgb.g)} ${Math.round(rgb.b)} / ${(rgb.a * 100).toFixed(0)}%)`;
+    return `rgb(${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)} / ${(rgb.a * 100).toFixed(0)}%)`;
   }
-  return `rgb(${Math.round(rgb.r)} ${Math.round(rgb.g)} ${Math.round(rgb.b)})`;
+  return `rgb(${Math.round(rgb.r)}${separator}${Math.round(rgb.g)}${separator}${Math.round(rgb.b)})`;
 }
 
-function formatOKLAB(oklab: OKLAB, simplified = false): string {
+function formatOKLAB(oklab: OKLAB, simplified = false, useCommas = false): string {
+  const separator = useCommas ? ', ' : ' ';
+  
   if (simplified) {
-    return `${oklab.l.toFixed(2)} ${oklab.a.toFixed(2)} ${oklab.b.toFixed(2)}${oklab.alpha !== undefined && oklab.alpha !== 1 ? ` / ${(oklab.alpha * 100).toFixed(0)}%` : ''}`;
+    return `${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)}${oklab.alpha !== undefined && oklab.alpha !== 1 ? ` / ${(oklab.alpha * 100).toFixed(0)}%` : ''}`;
   }
   
   if (oklab.alpha !== undefined && oklab.alpha !== 1) {
-    return `oklab(${oklab.l.toFixed(2)} ${oklab.a.toFixed(2)} ${oklab.b.toFixed(2)} / ${(oklab.alpha * 100).toFixed(0)}%)`;
+    return `oklab(${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)} / ${(oklab.alpha * 100).toFixed(0)}%)`;
   }
-  return `oklab(${oklab.l.toFixed(2)} ${oklab.a.toFixed(2)} ${oklab.b.toFixed(2)})`;
+  return `oklab(${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)})`;
 }
 
-function formatOKLCH(oklch: OKLCH, simplified = false): string {
+function formatOKLCH(oklch: OKLCH, simplified = false, useCommas = false): string {
+  const separator = useCommas ? ', ' : ' ';
+  
   if (simplified) {
-    return `${oklch.l.toFixed(2)} ${oklch.c.toFixed(2)} ${Math.round(oklch.h)}${oklch.alpha !== undefined && oklch.alpha !== 1 ? ` / ${(oklch.alpha * 100).toFixed(0)}%` : ''}`;
+    return `${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)}${oklch.alpha !== undefined && oklch.alpha !== 1 ? ` / ${(oklch.alpha * 100).toFixed(0)}%` : ''}`;
   }
   
   if (oklch.alpha !== undefined && oklch.alpha !== 1) {
-    return `oklch(${oklch.l.toFixed(2)} ${oklch.c.toFixed(2)} ${Math.round(oklch.h)} / ${(oklch.alpha * 100).toFixed(0)}%)`;
+    return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)} / ${(oklch.alpha * 100).toFixed(0)}%)`;
   }
-  return `oklch(${oklch.l.toFixed(2)} ${oklch.c.toFixed(2)} ${Math.round(oklch.h)})`;
+  return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)})`;
 }
 
 // Function to handle alpha percentage format
@@ -237,7 +245,8 @@ export function convertColor(
   input: string, 
   sourceFormat: ColorFormat, 
   targetFormat: ColorFormat,
-  simplified = false
+  simplified = false,
+  useCommas = false
 ): string | null {
   try {
     // Handle CSS variables and extract the actual color value
@@ -336,10 +345,10 @@ export function convertColor(
     if (typeof result === 'string') {
       formattedResult = result;
     } else if (result) {
-      if (targetFormat === 'hsl') formattedResult = formatHSL(result as HSL, simplified);
-      else if (targetFormat === 'rgb') formattedResult = formatRGB(result as RGB, simplified);
-      else if (targetFormat === 'oklab') formattedResult = formatOKLAB(result as OKLAB, simplified);
-      else if (targetFormat === 'oklch') formattedResult = formatOKLCH(result as OKLCH, simplified);
+      if (targetFormat === 'hsl') formattedResult = formatHSL(result as HSL, simplified, useCommas);
+      else if (targetFormat === 'rgb') formattedResult = formatRGB(result as RGB, simplified, useCommas);
+      else if (targetFormat === 'oklab') formattedResult = formatOKLAB(result as OKLAB, simplified, useCommas);
+      else if (targetFormat === 'oklch') formattedResult = formatOKLCH(result as OKLCH, simplified, useCommas);
       else if (targetFormat === 'hex' && typeof result === 'string') formattedResult = result;
       else formattedResult = String(result);
     } else {
@@ -366,7 +375,8 @@ export function processMultiLineInput(
   input: string, 
   sourceFormat: ColorFormat, 
   targetFormat: ColorFormat,
-  simplified = false
+  simplified = false,
+  useCommas = false
 ): Array<{
   original: string;
   converted: string | null;
@@ -390,7 +400,7 @@ export function processMultiLineInput(
       detectedFormat = detectColorFormat(trimmedLine);
     }
     
-    const converted = convertColor(trimmedLine, sourceFormat, targetFormat, simplified);
+    const converted = convertColor(trimmedLine, sourceFormat, targetFormat, simplified, useCommas);
     
     // Preserve the original whitespace by counting leading spaces
     if (converted) {
