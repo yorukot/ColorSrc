@@ -198,20 +198,19 @@ function formatOKLAB(oklab: OKLAB, simplified = false, useCommas = false): strin
   return `oklab(${oklab.l.toFixed(2)}${separator}${oklab.a.toFixed(2)}${separator}${oklab.b.toFixed(2)})`;
 }
 
-function formatOKLCH(oklch: OKLCH, simplified = false, useCommas = false): string {
+function formatOKLCH(oklch: OKLCH, simplified = false, useCommas = false, increasePrecision = true): string {
   const separator = useCommas ? ', ' : ' ';
+  const lPrecision = increasePrecision ? 3 : 2;
+  const cPrecision = increasePrecision ? 3 : 2;
+  const hPrecision = increasePrecision ? 2 : 0;
+  const aPrecision = increasePrecision ? 3 : 2;
   
-  // Only include alpha if it exists and is not 0 or extremely close to 0
-  const includeAlpha = oklch.alpha !== undefined && oklch.alpha !== 1 && oklch.alpha > 0.001;
+  // Only include alpha if it is valid
+  const includeAlpha = oklch.alpha !== undefined && 1 > oklch.alpha && oklch.alpha > 0.001;
+
+  const values = `${oklch.l.toFixed(lPrecision)}${separator}${oklch.c.toFixed(cPrecision)}${separator}${oklch.h.toFixed(hPrecision)}${includeAlpha ? ` / ${oklch.alpha.toFixed(aPrecision)}` : ''}`
   
-  if (simplified) {
-    return `${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)}${includeAlpha ? ` / ${(oklch.alpha! * 100).toFixed(0)}%` : ''}`;
-  }
-  
-  if (includeAlpha) {
-    return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)} / ${(oklch.alpha! * 100).toFixed(0)}%)`;
-  }
-  return `oklch(${oklch.l.toFixed(2)}${separator}${oklch.c.toFixed(2)}${separator}${Math.round(oklch.h)})`;
+  return simplified ? values : `oklch(${values})`;
 }
 
 // Function to convert alpha value (0-1) to hex string (00-FF)
@@ -634,4 +633,5 @@ export function processMultiLineInput(
       detectedFormat: detectedFormat || undefined
     };
   });
+
 } 
